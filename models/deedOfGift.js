@@ -1,0 +1,37 @@
+const mongoose = require("mongoose");
+
+const deedOfGift = mongoose.Schema({
+    countryOfGift: {type:String},
+    stateOfGift: {type:String},
+    revokeThisGift: {type:String},
+    dateOfTransfer: {type:String},
+    typeOfDonor: {type:String},
+    donorFullName: {type:String},
+    donorAddress: {type:String},
+    typeOfDonee: {type:String},
+    doneeFullName: {type:String},
+    doneeAddress: {type:String},
+    relationshipDonorDonee: {type:String},
+    isDoneeMinor: {type:String},
+    doneeGuardianName: {type:String},
+    doneeGuardianAddress: {type:String},
+    typeOfGift: {type:String},
+    giftPossessionTime: {type:String},
+    descriptionOfGift: {type:String},
+    purposeOfGift: {type:String},
+    specificDate: {type:String},
+    monetaryValue: {type:Number},
+    additionalClauses: [{type:String}],
+    agentFullName: {type:String},
+    agentAddress: {type:String},
+    addAlternateAgent: {type:String},
+    alternateAgentFullName: {type:String},
+    alternateAgentAddress: {type:String},
+    selfie: {type:String},
+    signature: {type:String},
+    willID: {type:String},
+    userID: {type:String},
+    dateCreated: {type:String},
+});
+
+module.exports = mongoose.model("deedOfGift", deedOfGift);

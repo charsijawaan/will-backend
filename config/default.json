@@ -1,0 +1,4 @@
+{
+    "jwtPrivateKey":"",
+    "mongoURI":"mongodb+srv://aamna:aamna@cluster0.z9eyp.mongodb.net/will?retryWrites=true&w=majority"
+}
