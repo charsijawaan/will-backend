@@ -7,9 +7,15 @@ const deedOfGift = mongoose.Schema({
     dateOfTransfer: {type:String},
     typeOfDonor: {type:String},
     donorFullName: {type:String},
+    donorCity: {type:String},
+    donorZipCode: {type:String},
+    donorState: {type:String},
     donorAddress: {type:String},
     typeOfDonee: {type:String},
     doneeFullName: {type:String},
+    doneeCity: {type:String},
+    doneeZipCode: {type:String},
+    doneeState: {type:String},
     doneeAddress: {type:String},
     relationshipDonorDonee: {type:String},
     isDoneeMinor: {type:String},
@@ -32,6 +38,6 @@ const deedOfGift = mongoose.Schema({
     willID: {type:String},
     userID: {type:String},
     dateCreated: {type:String},
-});
+}, {timestamps: true});
 
 module.exports = mongoose.model("deedOfGift", deedOfGift);

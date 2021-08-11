@@ -77,6 +77,8 @@ route.post("/updateWill", async (req, res) => {
     let userID = req.body.userID;
 
     let codicil = new Codicil({
+        type: "Standard",
+        dateCreated: moment().format('LL'),
         willID: willID,
         userID: userID,
         executorDetails: executorDetails,
@@ -95,25 +97,102 @@ route.post("/updateWill", async (req, res) => {
     await codicil.save();
     res.send({msg: "Success"});
 
-    // const filter = { _id : willID };
-    // const update = {
-    //     executorDetails: executorDetails,
-    //     distributionDetails: distributionDetails,
-    //     additionalDetails: additionalDetails,
-    //     wivesDetails: wivesDetails,
-    //     childrenDetails: childrenDetails,
-    //     guardianDetails: guardianDetails,
-    //     signingDetails: signingDetails,
-    //     personalDetails: personalDetails,
-    //     remainderDetails: remainderDetails,
-    //     otherDetails: otherDetails,
-    //     petDetails: petDetails
-    // };
-
-    // await Will.findOneAndUpdate(filter, update);
-
-    // res.send({msg: "Success"});
 });
+
+route.post("/updateWill_muslim", async (req, res) => {
+    let { 
+        prefix, firstName, middleName, lastName, suffix, gender, address, town, country, county, phoneNumber, email, maritalStatus,
+        wivesDetails,
+        children,
+        otherFamilyMembers,
+        guardianDetails,
+        step7Question, executorDetails, addAltExec, isRenumerated, execRenumeration,
+        beneficiary, beneficiaryName, beneficiaryAddress, beneficiaryEmail, beneficiaryPhone, selectedChild, selectedWife, beneficiaryAssets,
+        priorityArray,
+        otherTransferBeneficiary, otherGiftMadeTo, otherName, otherRelationship, otherAddress, otherContest, otherTrusteeName, otherTrusteeAdd,
+        giftToPet, petName, petDescription, petAmount, petCaretaker, petCareTakerName, petAddress, 
+        burialDescription, 
+        additionalInstructions, isLiterate, additionalName, additionalAddress, 
+        signingDetails,
+        userID, willID
+     } = req.body;
+
+    let codicil = new Codicil({
+        type: "Muslim",
+        dateCreated: moment().format('LL'),
+
+        prefix: prefix,
+        firstName: firstName,
+        middleName: middleName,
+        lastName: lastName,
+        suffix: suffix,
+        gender: gender,
+        address: address,
+        town: town,
+        country: country,
+        county: county,
+        phoneNumber: phoneNumber,
+        email: email,
+        maritalStatus: maritalStatus,
+
+        wivesDetails: JSON.parse(wivesDetails),
+
+        children: JSON.parse(children),
+
+        otherFamilyMembers: JSON.parse(otherFamilyMembers),
+
+        guardianDetails: JSON.parse(guardianDetails),
+
+        step7Question: step7Question,
+        executorDetails: JSON.parse(executorDetails),
+        addAltExec: addAltExec,
+        isRenumerated: isRenumerated,
+        execRenumeration: execRenumeration,
+
+        beneficiary: beneficiary,
+        beneficiaryName: beneficiaryName,
+        beneficiaryAddress: beneficiaryAddress,
+        beneficiaryEmail: beneficiaryEmail,
+        beneficiaryPhone: beneficiaryPhone,
+        selectedChild: selectedChild,
+        selectedWife: selectedWife,
+        beneficiaryAssets: JSON.parse(beneficiaryAssets),
+
+        priorityArray: JSON.parse(priorityArray),
+
+        otherTransferBeneficiary: otherTransferBeneficiary,
+        otherGiftMadeTo: otherGiftMadeTo,
+        otherName: otherName,
+        otherRelationship: otherRelationship,
+        otherAddress: otherAddress,
+        otherContest: otherContest,
+        otherTrusteeName: otherTrusteeName,
+        otherTrusteeAdd: otherTrusteeAdd,
+
+        giftToPet: giftToPet,
+        petName: petName,
+        petDescription: petDescription,
+        petAmount: petAmount,
+        petCaretaker: petCaretaker,
+        petCareTakerName: petCareTakerName,
+        petAddress: petAddress, 
+
+        burialDescription: burialDescription, 
+
+        additionalInstructions: JSON.parse(additionalInstructions),
+        isLiterate: isLiterate,
+        additionalName: additionalName,
+        additionalAddress: additionalAddress, 
+
+        signingDetails: JSON.parse(signingDetails),
+
+        userID: userID,
+        willID: willID,
+    });
+
+    await codicil.save();
+    res.send({msg: "Success"});
+})
 
 
 route.post("/get_registered_will", async (req, res) => {
@@ -305,10 +384,12 @@ route.post("/getcodicil", async (req, res) => {
 })
 
 route.post("/add_deed_of_gift", async (req, res) => {
-    let {   countryOfGift, stateOfGift, revokeThisGift, dateOfTransfer, typeOfDonor, donorFullName, donorAddress, typeOfDonee,
-            doneeFullName, doneeAddress, relationshipDonorDonee, isDoneeMinor, doneeGuardianName, doneeGuardianAddress,
+    let {   countryOfGift, stateOfGift, revokeThisGift, dateOfTransfer, typeOfDonor, donorFullName, donorCity, donorZipCode, donorState, donorAddress, typeOfDonee,
+            doneeFullName, doneeCity, doneeZipCode, doneeState, doneeAddress, relationshipDonorDonee, isDoneeMinor, doneeGuardianName, doneeGuardianAddress,
             typeOfGift, giftPossessionTime, descriptionOfGift, purposeOfGift, specificDate, monetaryValue, additionalClauses, agentFullName,
             agentAddress, addAlternateAgent, alternateAgentFullName, alternateAgentAddress, willID, userID } = req.body;
+            
+    console.log(req.body);
 
 
     let signatureFile = ["",""];
@@ -332,6 +413,12 @@ route.post("/add_deed_of_gift", async (req, res) => {
         donorAddress: donorAddress,
         typeOfDonee: typeOfDonee,
         doneeFullName: doneeFullName,
+        doneeCity: doneeCity,
+        doneeZipCode: doneeZipCode,
+        doneeState: doneeState,
+        donorCity: donorCity,
+        donorZipCode: donorZipCode,
+        donorState: donorState,
         doneeAddress: doneeAddress,
         relationshipDonorDonee: relationshipDonorDonee,
         isDoneeMinor: isDoneeMinor,
@@ -447,29 +534,29 @@ route.post("/add_deed_of_gift_commision", async (req, res) => {
 
 route.post("/add_living_trust", async (req, res) => {
     let { areYouOver18, areYouOfSaneMind, doYouOwnThePropertyVested, areYouCreatingARevocableOrIrrevocable,
-        name, address, phone, email,
-        isTheGrantorNotTheTrustee, trusteeType, organisationConfirmation, individuaConfirmation, trusteeName, trusteeAddress, doYouWantCotrustee, CotrusteeName, CotrusteeAddress, wouldYouLikeToNameTheTrust, trustName,
-        assetType, realEstateAddress, realEstateType, financialAccountName, financialAccountType, financialAccountNumber, stockAndBondStockName, stockAndBondStockNumberOfShares, stockAndBondStockCertificateNumber, stockAndBondStockDescription, stockAndBondBondName, stockAndBondBondValue, stockAndBondBondCertificateNumber, stockAndBondBondDescription, businessName, businessDescription, titleOfContract, nameOfOtherParty, dateOfContract, contarctDescription, lifeAssuranceName, lifeAssuranceDescription, lifeAssuranceNumber, retirementProceedName, retirementProceedDescription, retirementProceedNumber, personalPropertyQuestion, personalPropertyDescription,
-        beneficiariesNames, beneficiariesCount, giveTheFollowingItems, to, alternateRecipient,
-        nameOfCharity, gift,
+        name, city, zipCode, state, address, phone, email,
+        isTheGrantorNotTheTrustee, trusteeType, organisationConfirmation, individuaConfirmation, trusteeName, trusteeCity, trusteeZipCode, trusteeState, trusteeAddress, doYouWantCotrustee, CotrusteeName, CotrusteeCity, CotrusteeZipCode, CotrusteeState, CotrusteeAddress, wouldYouLikeToNameTheTrust, trustName,
+        step4Gifts, step4GiftsCount,
+        beneficiariesNames, beneficiariesCount, giveToAlt, giveToAltCount,
+        step5Charities, step5CharityCount,
         subtrustQuestion, subtrustName, subtrustAge,
         pourOverWillQuestion,
         additionalInstructionOne, additionalInstructionTwo,
         remunerationQuestion, remunerationInstruction, remunerationAmount, remunerationPeriod,
         date, place, time, userID, willID } = req.body;    
 
-    let pourOverWillFile = ["",""];
+    // let pourOverWillFile = ["",""];
     let signature = ["",""];
     let selfie = ["",""];
     let signatureGrantor = ["",""];
     let signatureTrustee = ["",""];
     let signatureSuccessor = ["",""];
-    let affidavit = ["",""];
+    // let affidavit = ["",""];
 
     if(req.files) {
-        if(req.files.pourOverWillFile !== undefined) {
-            pourOverWillFile = await uploadGeneric(req.files.pourOverWillFile);
-        }
+        // if(req.files.pourOverWillFile !== undefined) {
+        //     pourOverWillFile = await uploadGeneric(req.files.pourOverWillFile);
+        // }
         if(req.files.signature !== undefined) {
             signature = await uploadGeneric(req.files.signature);
         }
@@ -485,9 +572,9 @@ route.post("/add_living_trust", async (req, res) => {
         if(req.files.signatureSuccessor !== undefined) {
             signatureSuccessor = await uploadGeneric(req.files.signatureSuccessor);            
         }
-        if(req.files.affidavit !== undefined) {
-            affidavit = await uploadGeneric(req.files.affidavit);            
-        }                        
+        // if(req.files.affidavit !== undefined) {
+        //     affidavit = await uploadGeneric(req.files.affidavit);            
+        // }                        
         
     }
 
@@ -498,6 +585,9 @@ route.post("/add_living_trust", async (req, res) => {
         areYouCreatingARevocableOrIrrevocable: areYouCreatingARevocableOrIrrevocable,
 
         name: name,
+        city: city,
+        zipCode: zipCode,
+        state: state,
         address: address,
         phone: phone,
         email: email,
@@ -507,56 +597,39 @@ route.post("/add_living_trust", async (req, res) => {
         organisationConfirmation: organisationConfirmation,
         individuaConfirmation: individuaConfirmation,
         trusteeName: trusteeName,
+        trusteeCity: trusteeCity,
+        trusteeZipCode: trusteeZipCode,
+        trusteeState: trusteeState,
         trusteeAddress: trusteeAddress,
         doYouWantCotrustee: doYouWantCotrustee,
         CotrusteeName: CotrusteeName,
+        CotrusteeCity: CotrusteeCity,
+        CotrusteeZipCode: CotrusteeZipCode,
+        CotrusteeState: CotrusteeState,
         CotrusteeAddress: CotrusteeAddress,
         wouldYouLikeToNameTheTrust: wouldYouLikeToNameTheTrust,
         trustName: trustName,
-        assetType: assetType,
-        realEstateAddress: realEstateAddress,
-        realEstateType: realEstateType,
-        financialAccountName: financialAccountName,
-        financialAccountType: financialAccountType,
-        financialAccountNumber: financialAccountNumber,
-        stockAndBondStockName: stockAndBondStockName,
-        stockAndBondStockNumberOfShares: stockAndBondStockNumberOfShares,
-        stockAndBondStockCertificateNumber: stockAndBondStockCertificateNumber,
-        stockAndBondStockDescription: stockAndBondStockDescription,
-        stockAndBondBondName: stockAndBondBondName,
-        stockAndBondBondValue: stockAndBondBondValue,
-        stockAndBondBondCertificateNumber: stockAndBondBondCertificateNumber,
-        stockAndBondBondDescription: stockAndBondBondDescription,
-        businessName: businessName,
-        businessDescription: businessDescription,
-        titleOfContract: titleOfContract,
-        nameOfOtherParty: nameOfOtherParty,
-        dateOfContract: dateOfContract,
-        contarctDescription: contarctDescription,
-        lifeAssuranceName: lifeAssuranceName,
-        lifeAssuranceDescription: lifeAssuranceDescription,
-        lifeAssuranceNumber: lifeAssuranceNumber,
-        retirementProceedName: retirementProceedName,
-        retirementProceedDescription: retirementProceedDescription,
-        retirementProceedNumber: retirementProceedNumber,
-        personalPropertyQuestion: personalPropertyQuestion,
-        personalPropertyDescription: personalPropertyDescription,
+
+        step4Gifts: JSON.parse(step4Gifts),
+        step4GiftsCount: step4GiftsCount,
 
         beneficiariesNames: JSON.parse(beneficiariesNames),
         beneficiariesCount: beneficiariesCount,
-        giveTheFollowingItems: giveTheFollowingItems,
-        to: to,
-        alternateRecipient: alternateRecipient,
+        giveToAlt: JSON.parse(giveToAlt),
+        giveToAltCount: giveToAltCount,
+        // giveTheFollowingItems: giveTheFollowingItems,
+        // to: to,
+        // alternateRecipient: alternateRecipient,
 
-        nameOfCharity: nameOfCharity,
-        gift: gift,
+        step5Charities: JSON.parse(step5Charities),
+        step5CharityCount: step5CharityCount,
 
         subtrustQuestion: subtrustQuestion,
         subtrustName: subtrustName,
         subtrustAge: subtrustAge,
 
         pourOverWillQuestion: pourOverWillQuestion,
-        pourOverWillFile: pourOverWillFile[1],
+        // pourOverWillFile: pourOverWillFile[1],
 
         additionalInstructionOne: additionalInstructionOne,
         additionalInstructionTwo: additionalInstructionTwo,
@@ -571,7 +644,7 @@ route.post("/add_living_trust", async (req, res) => {
         signatureGrantor: signatureGrantor[1],
         signatureTrustee: signatureTrustee[1],
         signatureSuccessor: signatureSuccessor[1],
-        affidavit: affidavit[1],
+        // affidavit: affidavit[1],
         date: date,
         place: place,
         time: time,
