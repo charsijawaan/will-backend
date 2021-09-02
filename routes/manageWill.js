@@ -344,6 +344,7 @@ route.post("/adddocument", async (req, res) => {
         type: type,
         desc: desc,
         location: location,
+        dateCreated: moment().format('LL'),
     });
 
     await willDocument.save();
@@ -384,22 +385,40 @@ route.post("/getcodicil", async (req, res) => {
 })
 
 route.post("/add_deed_of_gift", async (req, res) => {
-    let {   countryOfGift, stateOfGift, revokeThisGift, dateOfTransfer, typeOfDonor, donorFullName, donorCity, donorZipCode, donorState, donorAddress, typeOfDonee,
-            doneeFullName, doneeCity, doneeZipCode, doneeState, doneeAddress, relationshipDonorDonee, isDoneeMinor, doneeGuardianName, doneeGuardianAddress,
-            typeOfGift, giftPossessionTime, descriptionOfGift, purposeOfGift, specificDate, monetaryValue, additionalClauses, agentFullName,
-            agentAddress, addAlternateAgent, alternateAgentFullName, alternateAgentAddress, willID, userID } = req.body;
-            
-    console.log(req.body);
-
+    let {   countryOfGift, stateOfGift, revokeThisGift, dateOfTransfer,
+            typeOfDonor, donorFullName, donorCity, donorZipCode, donorState, donorAddress,
+            typeOfDonee, doneeFullName, doneeCity, doneeZipCode, doneeState, doneeAddress, relationshipDonorDonee, isDoneeMinor, doneeGuardianName, doneeGuardianAddress,
+            step4Assets,
+            additionalClauses,
+            agentFullName, agentCity, agentZipCode, agentState, agentAddress, addAlternateAgent, alternateAgentFullName, alternateAgentCity, alternateAgentZipCode, alternateAgentState, alternateAgentAddress,
+            willID, userID } = req.body;
+                
+    step4Assets = JSON.parse(step4Assets);
+    for(var i = 0; i < step4Assets.length; i++) {
+        if(req.files[step4Assets[i].assetFileName] !== undefined) {
+            let oldAndNewNames = await uploadGeneric(req.files[step4Assets[i].assetFileName]);
+            const doc = new WillDocument({
+                willID: willID,
+                originalDocumentName: oldAndNewNames[0],
+                newDocumentName: oldAndNewNames[1],
+                type: oldAndNewNames[1].split('.').pop(),
+                location: step4Assets[i].documentLocation,
+                name: step4Assets[i].assetFileName,
+                from: "deed of gift",
+                dateCreated: moment().format('LL'),
+            });
+            await doc.save();
+        }            
+    }
 
     let signatureFile = ["",""];
     let selfie = ["",""];
     if(req.files) {
         if(req.files.signature !== undefined) {
-            signatureFile = await uploadSignature(req);
+            signatureFile = await uploadGeneric(req.files.signature);
         }
         if(req.files.selfie !== undefined) {
-            selfie = await uploadSelfie(req);
+            selfie = await uploadGeneric(req.files.selfie);
         }
     }
 
@@ -408,38 +427,46 @@ route.post("/add_deed_of_gift", async (req, res) => {
         stateOfGift: stateOfGift,
         revokeThisGift: revokeThisGift,
         dateOfTransfer: dateOfTransfer,
+
         typeOfDonor: typeOfDonor,
         donorFullName: donorFullName,
+        donorCity: donorCity,
+        donorZipCode: donorZipCode,
+        donorState: donorState,        
         donorAddress: donorAddress,
+
         typeOfDonee: typeOfDonee,
         doneeFullName: doneeFullName,
         doneeCity: doneeCity,
         doneeZipCode: doneeZipCode,
-        doneeState: doneeState,
-        donorCity: donorCity,
-        donorZipCode: donorZipCode,
-        donorState: donorState,
+        doneeState: doneeState,        
         doneeAddress: doneeAddress,
         relationshipDonorDonee: relationshipDonorDonee,
         isDoneeMinor: isDoneeMinor,
         doneeGuardianName: doneeGuardianName,
         doneeGuardianAddress: doneeGuardianAddress,
-        typeOfGift: typeOfGift,
-        giftPossessionTime: giftPossessionTime,
-        descriptionOfGift: descriptionOfGift,
-        purposeOfGift: purposeOfGift,
-        specificDate: specificDate,
-        monetaryValue: monetaryValue,
+
+        step4Assets: step4Assets,
+
         additionalClauses: JSON.parse(additionalClauses),
+
         agentFullName: agentFullName,
+        agentCity: agentCity,
+        agentZipCode: agentZipCode,
+        agentState: agentState,
         agentAddress: agentAddress,
         addAlternateAgent: addAlternateAgent,
         alternateAgentFullName: alternateAgentFullName,
+        alternateAgentCity: alternateAgentCity,
+        alternateAgentZipCode: alternateAgentZipCode,
+        alternateAgentState: alternateAgentState,
         alternateAgentAddress: alternateAgentAddress,
-        willID: willID,
-        userID: userID,
+
         selfie: selfie[1],
         signature: signatureFile[1],        
+
+        willID: willID,
+        userID: userID,        
         dateCreated: moment().format('LL'),
     })
 
