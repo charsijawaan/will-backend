@@ -64,39 +64,154 @@ route.post("/get_active_will_id", async (req, res) => {
 
 // update will means add codicil
 route.post("/updateWill", async (req, res) => {
-  let willID = req.body.willID;
-  let executorDetails = JSON.parse(req.body.executorDetails);
-  let distributionDetails = JSON.parse(req.body.distributionDetails);
-  let additionalDetails = JSON.parse(req.body.additionalDetails);
-  let wivesDetails = JSON.parse(req.body.wivesDetails);
-  let childrenDetails = JSON.parse(req.body.childrenDetails);
-  let guardianDetails = JSON.parse(req.body.guardianDetails);
-  let signingDetails = JSON.parse(req.body.signingDetails);
-  let personalDetails = JSON.parse(req.body.personalDetails);
-  let remainderDetails = JSON.parse(req.body.remainderDetails);
-  let otherDetails = JSON.parse(req.body.otherDetails);
-  let petDetails = JSON.parse(req.body.petDetails);
-  let userID = req.body.userID;
+  let {
+    makingFor,
+    step1Prefix,
+    step1FirstName,
+    step1MiddleName,
+    step1LastName,
+    step1Suffix,
+    step1Gender,
+    step1Address,
+    step1Town,
+    step1Country,
+    step1County,
+    step1PhoneNumber,
+    step1Email,
+    step1MaritalStatus,
+    prefix,
+    firstName,
+    middleName,
+    lastName,
+    suffix,
+    gender,
+    address,
+    town,
+    country,
+    county,
+    phoneNumber,
+    email,
+    maritalStatus,
+    step3ExecutorDetails,
+    wivesDetails,
+    step5Children,
+    step6GuardianDetails,
+    step7AssetDetails,
+    doYouWantToDistributeEqually,
+    step9specificIndividuals,
+    transferBeneficiary,
+    giftMadeTo,
+    trusteeName,
+    trusteeAddress,
+    name,
+    relationship,
+    step10Address,
+    restriction,
+    step11AnyGiftToPet,
+    step11Name,
+    step11Desc,
+    step11Amount,
+    step11AppointCareTaker,
+    step11CareTakerName,
+    step11CareTakerAddress,
+    burialDesc,
+    step13Desc,
+    step13IsLiterate,
+    step13LiterateName,
+    step13LiterateAddress,
+    step14Witness,
+    userID,
+    willID,
+  } = req.body;
+
+  step7AssetDetails = JSON.parse(step7AssetDetails);
 
   let codicil = new Codicil({
+    _id: new mongoose.Types.ObjectId(),
     type: "Standard",
+    makingFor: makingFor,
+    step1Prefix: step1Prefix,
+    step1FirstName: step1FirstName,
+    step1MiddleName: step1MiddleName,
+    step1LastName: step1LastName,
+    step1Suffix: step1Suffix,
+    step1Gender: step1Gender,
+    step1Address: step1Address,
+    step1Town: step1Town,
+    step1Country: step1Country,
+    step1County: step1County,
+    step1PhoneNumber: step1PhoneNumber,
+    step1Email: step1Email,
+    step1MaritalStatus: step1MaritalStatus,
+    prefix: prefix,
+    firstName: firstName,
+    middleName: middleName,
+    lastName: lastName,
+    suffix: suffix,
+    gender: gender,
+    address: address,
+    town: town,
+    country: country,
+    county: county,
+    phoneNumber: phoneNumber,
+    email: email,
+    maritalStatus: maritalStatus,
+    step3ExecutorDetails: JSON.parse(step3ExecutorDetails),
+    wivesDetails: JSON.parse(wivesDetails),
+    step5Children: JSON.parse(step5Children),
+    step6GuardianDetails: JSON.parse(step6GuardianDetails),
+    step7AssetDetails: step7AssetDetails,
+    doYouWantToDistributeEqually: doYouWantToDistributeEqually,
+    step9specificIndividuals: JSON.parse(step9specificIndividuals),
+    transferBeneficiary: transferBeneficiary,
+    giftMadeTo: giftMadeTo,
+    trusteeName: trusteeName,
+    trusteeAddress: trusteeAddress,
+    name: name,
+    relationship: relationship,
+    step10Address: step10Address,
+    restriction: restriction,
+    step11AnyGiftToPet: step11AnyGiftToPet,
+    step11Name: step11Name,
+    step11Desc: step11Desc,
+    step11Amount: step11Amount,
+    step11AppointCareTaker: step11AppointCareTaker,
+    step11CareTakerName: step11CareTakerName,
+    step11CareTakerAddress: step11CareTakerAddress,
+    burialDesc: burialDesc,
+    step13Desc: JSON.parse(step13Desc),
+    step13IsLiterate: step13IsLiterate,
+    step13LiterateName: step13LiterateName,
+    step13LiterateAddress: step13LiterateAddress,
+    step14Witness: JSON.parse(step14Witness),
     dateCreated: moment().format("LL"),
     willID: willID,
     userID: userID,
-    executorDetails: executorDetails,
-    distributionDetails: distributionDetails,
-    additionalDetails: additionalDetails,
-    wivesDetails: wivesDetails,
-    childrenDetails: childrenDetails,
-    guardianDetails: guardianDetails,
-    signingDetails: signingDetails,
-    personalDetails: personalDetails,
-    remainderDetails: remainderDetails,
-    otherDetails: otherDetails,
-    petDetails: petDetails,
   });
 
   await codicil.save();
+
+  for (var i = 0; i < step7AssetDetails.length; i++) {
+    if (step7AssetDetails[i].assetFileName !== "") {
+      if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
+        let oldAndNewNames = await uploadGeneric(
+          req.files[step7AssetDetails[i].assetFileName]
+        );
+        const doc = new WillDocument({
+          willID: willID,
+          originalDocumentName: oldAndNewNames[0],
+          newDocumentName: oldAndNewNames[1],
+          type: oldAndNewNames[1].split(".").pop(),
+          location: step7AssetDetails[i].documentLocation,
+          name: step7AssetDetails[i].assetFileName,
+          from: "nonmuslim codicil",
+          dateCreated: moment().format("LL"),
+        });
+        await doc.save();
+      }
+    }
+  }
+
   res.send({ msg: "Success" });
 });
 
