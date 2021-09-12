@@ -197,7 +197,8 @@ route.post("/createwill", async (req, res) => {
         type: oldAndNewNames[1].split(".").pop(),
         location: step7AssetDetails[i].documentLocation,
         name: step7AssetDetails[i].assetFileName,
-        from: "will creation",
+        from: "nonmuslim will creation",
+        assetID: step7AssetDetails[i].assetID,
         dateCreated: moment().format("LL"),
       });
       await doc.save();
@@ -362,7 +363,8 @@ route.post("/createwill/muslim", async (req, res) => {
         type: oldAndNewNames[1].split(".").pop(),
         location: step7AssetDetails[i].documentLocation,
         name: step7AssetDetails[i].assetFileName,
-        from: "will creation",
+        from: "muslim will creation",
+        assetID: step7AssetDetails[i].assetID,
         dateCreated: moment().format("LL"),
       });
       await doc.save();

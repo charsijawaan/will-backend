@@ -204,7 +204,8 @@ route.post("/updateWill", async (req, res) => {
           type: oldAndNewNames[1].split(".").pop(),
           location: step7AssetDetails[i].documentLocation,
           name: step7AssetDetails[i].assetFileName,
-          from: "nonmuslim codicil",
+          from: "muslim codicil",
+          assetID: step7AssetDetails[i].assetID,
           dateCreated: moment().format("LL"),
         });
         await doc.save();
@@ -217,6 +218,20 @@ route.post("/updateWill", async (req, res) => {
 
 route.post("/updateWill_muslim", async (req, res) => {
   let {
+    makingFor,
+    step1Prefix,
+    step1FirstName,
+    step1MiddleName,
+    step1LastName,
+    step1Suffix,
+    step1Gender,
+    step1Address,
+    step1Town,
+    step1Country,
+    step1County,
+    step1PhoneNumber,
+    step1Email,
+    step1MaritalStatus,
     prefix,
     firstName,
     middleName,
@@ -234,19 +249,9 @@ route.post("/updateWill_muslim", async (req, res) => {
     children,
     otherFamilyMembers,
     guardianDetails,
-    step7Question,
-    executorDetails,
-    addAltExec,
-    isRenumerated,
-    execRenumeration,
-    beneficiary,
-    beneficiaryName,
-    beneficiaryAddress,
-    beneficiaryEmail,
-    beneficiaryPhone,
-    selectedChild,
-    selectedWife,
-    beneficiaryAssets,
+    step7AssetDetails,
+    step8Question,
+    step8ExecutorDetails,
     priorityArray,
     otherTransferBeneficiary,
     otherGiftMadeTo,
@@ -256,10 +261,6 @@ route.post("/updateWill_muslim", async (req, res) => {
     otherContest,
     otherTrusteeName,
     otherTrusteeAdd,
-    giftToPet,
-    petName,
-    petDescription,
-    petAmount,
     petCaretaker,
     petCareTakerName,
     petAddress,
@@ -273,10 +274,25 @@ route.post("/updateWill_muslim", async (req, res) => {
     willID,
   } = req.body;
 
-  let codicil = new Codicil({
-    type: "Muslim",
-    dateCreated: moment().format("LL"),
+  step7AssetDetails = JSON.parse(step7AssetDetails);
 
+  let codicil = new Codicil({
+    _id: new mongoose.Types.ObjectId(),
+    type: "Muslim",
+    makingFor: makingFor,
+    step1Prefix: step1Prefix,
+    step1FirstName: step1FirstName,
+    step1MiddleName: step1MiddleName,
+    step1LastName: step1LastName,
+    step1Suffix: step1Suffix,
+    step1Gender: step1Gender,
+    step1Address: step1Address,
+    step1Town: step1Town,
+    step1Country: step1Country,
+    step1County: step1County,
+    step1PhoneNumber: step1PhoneNumber,
+    step1Email: step1Email,
+    step1MaritalStatus: step1MaritalStatus,
     prefix: prefix,
     firstName: firstName,
     middleName: middleName,
@@ -290,32 +306,14 @@ route.post("/updateWill_muslim", async (req, res) => {
     phoneNumber: phoneNumber,
     email: email,
     maritalStatus: maritalStatus,
-
     wivesDetails: JSON.parse(wivesDetails),
-
     children: JSON.parse(children),
-
     otherFamilyMembers: JSON.parse(otherFamilyMembers),
-
     guardianDetails: JSON.parse(guardianDetails),
-
-    step7Question: step7Question,
-    executorDetails: JSON.parse(executorDetails),
-    addAltExec: addAltExec,
-    isRenumerated: isRenumerated,
-    execRenumeration: execRenumeration,
-
-    beneficiary: beneficiary,
-    beneficiaryName: beneficiaryName,
-    beneficiaryAddress: beneficiaryAddress,
-    beneficiaryEmail: beneficiaryEmail,
-    beneficiaryPhone: beneficiaryPhone,
-    selectedChild: selectedChild,
-    selectedWife: selectedWife,
-    beneficiaryAssets: JSON.parse(beneficiaryAssets),
-
+    step7AssetDetails: step7AssetDetails,
+    step8Question: step8Question,
+    step8ExecutorDetails: JSON.parse(step8ExecutorDetails),
     priorityArray: JSON.parse(priorityArray),
-
     otherTransferBeneficiary: otherTransferBeneficiary,
     otherGiftMadeTo: otherGiftMadeTo,
     otherName: otherName,
@@ -324,29 +322,44 @@ route.post("/updateWill_muslim", async (req, res) => {
     otherContest: otherContest,
     otherTrusteeName: otherTrusteeName,
     otherTrusteeAdd: otherTrusteeAdd,
-
-    giftToPet: giftToPet,
-    petName: petName,
-    petDescription: petDescription,
-    petAmount: petAmount,
     petCaretaker: petCaretaker,
     petCareTakerName: petCareTakerName,
     petAddress: petAddress,
-
     burialDescription: burialDescription,
-
     additionalInstructions: JSON.parse(additionalInstructions),
     isLiterate: isLiterate,
     additionalName: additionalName,
     additionalAddress: additionalAddress,
-
     signingDetails: JSON.parse(signingDetails),
-
+    dateCreated: moment().format("LL"),
     userID: userID,
     willID: willID,
   });
 
   await codicil.save();
+
+  for (var i = 0; i < step7AssetDetails.length; i++) {
+    if (step7AssetDetails[i].assetFileName !== "") {
+      if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
+        let oldAndNewNames = await uploadGeneric(
+          req.files[step7AssetDetails[i].assetFileName]
+        );
+        const doc = new WillDocument({
+          willID: willID,
+          originalDocumentName: oldAndNewNames[0],
+          newDocumentName: oldAndNewNames[1],
+          type: oldAndNewNames[1].split(".").pop(),
+          location: step7AssetDetails[i].documentLocation,
+          name: step7AssetDetails[i].assetFileName,
+          from: "muslim codicil",
+          assetID: step7AssetDetails[i].assetID,
+          dateCreated: moment().format("LL"),
+        });
+        await doc.save();
+      }
+    }
+  }
+
   res.send({ msg: "Success" });
 });
 
