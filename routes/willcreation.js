@@ -211,6 +211,20 @@ route.post("/createwill", async (req, res) => {
 
 route.post("/createwill/muslim", async (req, res) => {
   let {
+    makingFor,
+    step1Prefix,
+    step1FirstName,
+    step1MiddleName,
+    step1LastName,
+    step1Suffix,
+    step1Gender,
+    step1Address,
+    step1Town,
+    step1Country,
+    step1County,
+    step1PhoneNumber,
+    step1Email,
+    step1MaritalStatus,
     prefix,
     firstName,
     middleName,
@@ -228,19 +242,9 @@ route.post("/createwill/muslim", async (req, res) => {
     children,
     otherFamilyMembers,
     guardianDetails,
-    executorDetails,
-    step7Question,
-    addAltExec,
-    isRenumerated,
-    execRenumeration,
-    beneficiaryAssets,
-    beneficiary,
-    beneficiaryName,
-    beneficiaryAddress,
-    beneficiaryEmail,
-    beneficiaryPhone,
-    selectedChild,
-    selectedWife,
+    step7AssetDetails,
+    step8Question,
+    step8ExecutorDetails,
     priorityArray,
     otherTransferBeneficiary,
     otherGiftMadeTo,
@@ -250,10 +254,6 @@ route.post("/createwill/muslim", async (req, res) => {
     otherContest,
     otherTrusteeName,
     otherTrusteeAdd,
-    giftToPet,
-    petName,
-    petDescription,
-    petAmount,
     petCaretaker,
     petCareTakerName,
     petAddress,
@@ -282,11 +282,25 @@ route.post("/createwill/muslim", async (req, res) => {
     }
   }
 
+  step7AssetDetails = JSON.parse(step7AssetDetails);
+
   var wm = new Will({
     _id: new mongoose.Types.ObjectId(),
-
     type: "Muslim",
-
+    makingFor: makingFor,
+    step1Prefix: step1Prefix,
+    step1FirstName: step1FirstName,
+    step1MiddleName: step1MiddleName,
+    step1LastName: step1LastName,
+    step1Suffix: step1Suffix,
+    step1Gender: step1Gender,
+    step1Address: step1Address,
+    step1Town: step1Town,
+    step1Country: step1Country,
+    step1County: step1County,
+    step1PhoneNumber: step1PhoneNumber,
+    step1Email: step1Email,
+    step1MaritalStatus: step1MaritalStatus,
     prefix: prefix,
     firstName: firstName,
     middleName: middleName,
@@ -300,32 +314,14 @@ route.post("/createwill/muslim", async (req, res) => {
     phoneNumber: phoneNumber,
     email: email,
     maritalStatus: maritalStatus,
-
     wivesDetails: JSON.parse(wivesDetails),
-
     children: JSON.parse(children),
-
     otherFamilyMembers: JSON.parse(otherFamilyMembers),
-
     guardianDetails: JSON.parse(guardianDetails),
-
-    executorDetails: JSON.parse(executorDetails),
-    step7Question: step7Question,
-    addAltExec: addAltExec,
-    isRenumerated: isRenumerated,
-    execRenumeration: execRenumeration,
-
-    beneficiaryAssets: JSON.parse(beneficiaryAssets),
-    beneficiary: beneficiary,
-    beneficiaryName: beneficiaryName,
-    beneficiaryAddress: beneficiaryAddress,
-    beneficiaryEmail: beneficiaryEmail,
-    beneficiaryPhone: beneficiaryPhone,
-    selectedChild: selectedChild,
-    selectedWife: selectedWife,
-
+    step7AssetDetails: step7AssetDetails,
+    step8Question: step8Question,
+    step8ExecutorDetails: JSON.parse(step8ExecutorDetails),
     priorityArray: JSON.parse(priorityArray),
-
     otherTransferBeneficiary: otherTransferBeneficiary,
     otherGiftMadeTo: otherGiftMadeTo,
     otherName: otherName,
@@ -334,36 +330,44 @@ route.post("/createwill/muslim", async (req, res) => {
     otherContest: otherContest,
     otherTrusteeName: otherTrusteeName,
     otherTrusteeAdd: otherTrusteeAdd,
-
-    giftToPet: giftToPet,
-    petName: petName,
-    petDescription: petDescription,
-    petAmount: petAmount,
     petCaretaker: petCaretaker,
     petCareTakerName: petCareTakerName,
     petAddress: petAddress,
-
     burialDescription: burialDescription,
-
     additionalInstructions: JSON.parse(additionalInstructions),
     isLiterate: isLiterate,
     additionalName: additionalName,
     additionalAddress: additionalAddress,
-
     signingDetails: JSON.parse(signingDetails),
-
     selfie1: selfie1[1],
     selfie2: selfie2[1],
     selfie3: selfie3[1],
-
     dateCreated: moment().format("LL"),
-
     userID: userID,
   });
 
   await wm.save();
 
   await Users.findOneAndUpdate({ _id: userID }, { activeWillID: wm._id });
+
+  for (var i = 0; i < step7AssetDetails.length; i++) {
+    if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
+      let oldAndNewNames = await uploadGeneric(
+        req.files[step7AssetDetails[i].assetFileName]
+      );
+      const doc = new WillDocument({
+        willID: wm._id,
+        originalDocumentName: oldAndNewNames[0],
+        newDocumentName: oldAndNewNames[1],
+        type: oldAndNewNames[1].split(".").pop(),
+        location: step7AssetDetails[i].documentLocation,
+        name: step7AssetDetails[i].assetFileName,
+        from: "will creation",
+        dateCreated: moment().format("LL"),
+      });
+      await doc.save();
+    }
+  }
 
   res.send({
     msg: "success",
