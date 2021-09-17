@@ -181,28 +181,34 @@ route.post("/createwill", async (req, res) => {
     dateCreated: moment().format("LL"),
   });
 
-  await will.save();
+  console.log("YAHAN TK SAE HAI");
 
-  await Users.findOneAndUpdate({ _id: userID }, { activeWillID: will._id });
+  try {
+    await will.save();
 
-  for (var i = 0; i < step7AssetDetails.length; i++) {
-    if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
-      let oldAndNewNames = await uploadGeneric(
-        req.files[step7AssetDetails[i].assetFileName]
-      );
-      const doc = new WillDocument({
-        willID: will._id,
-        originalDocumentName: oldAndNewNames[0],
-        newDocumentName: oldAndNewNames[1],
-        type: oldAndNewNames[1].split(".").pop(),
-        location: step7AssetDetails[i].documentLocation,
-        name: step7AssetDetails[i].assetFileName,
-        from: "nonmuslim will creation",
-        assetID: step7AssetDetails[i].assetID,
-        dateCreated: moment().format("LL"),
-      });
-      await doc.save();
+    await Users.findOneAndUpdate({ _id: userID }, { activeWillID: will._id });
+
+    for (var i = 0; i < step7AssetDetails.length; i++) {
+      if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
+        let oldAndNewNames = await uploadGeneric(
+          req.files[step7AssetDetails[i].assetFileName]
+        );
+        const doc = new WillDocument({
+          willID: will._id,
+          originalDocumentName: oldAndNewNames[0],
+          newDocumentName: oldAndNewNames[1],
+          type: oldAndNewNames[1].split(".").pop(),
+          location: step7AssetDetails[i].documentLocation,
+          name: step7AssetDetails[i].assetFileName,
+          from: "nonmuslim will creation",
+          assetID: step7AssetDetails[i].assetID,
+          dateCreated: moment().format("LL"),
+        });
+        await doc.save();
+      }
     }
+  } catch (e) {
+    console.log(e);
   }
 
   res.send({

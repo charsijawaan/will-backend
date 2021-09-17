@@ -3,7 +3,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-const cors = require("cors");
+var cors = require("cors");
 const config = require("config");
 const dotenv = require("dotenv");
 
@@ -48,58 +48,63 @@ app.use("/willcreation", willcreation);
 app.use("/managewill", managewill);
 
 app.post("/getimg", async (req, res) => {
+  var fullUrl = req.protocol + ":\\\\" + req.get("host") + "\\";
 
-    var fullUrl = req.protocol + ":\\\\" + req.get("host") + "\\";
+  console.log(fullUrl);
 
-    console.log(fullUrl);
+  let imgURL = req.body.imgURL;
+  let code = req.body.code;
 
-    let imgURL = req.body.imgURL;
-    let code = req.body.code;
+  var loadedImage;
 
-    var loadedImage;
+  let d = new Date();
 
-    let d = new Date();
+  var newFileName = d.getTime() + "." + imgURL.split(".").pop();
 
-    var newFileName = d.getTime() + "." + imgURL.split(".").pop();
-
-    Jimp.read(imgURL)
-        .then(function (image) {
-            loadedImage = image;
-            return Jimp.loadFont(Jimp.FONT_SANS_16_BLACK);
-        })
-        .then(function (font) {
-            loadedImage
-                .print(font, 5, 1, {
-                    text: code,
-                    alignmentX: Jimp.HORIZONTAL_ALIGN_LEFT,
-                    alignmentY: Jimp.VERTICAL_ALIGN_BOTTOM,
-                }, loadedImage.bitmap.width, loadedImage.bitmap.height)
-                .write(path.join("public", "uploads", newFileName));
-        })
-        .catch(function (err) {
-            console.error(err);
-        });
-
-    res.send({
-        imgURL: fullUrl + path.join("uploads", newFileName),
+  Jimp.read(imgURL)
+    .then(function (image) {
+      loadedImage = image;
+      return Jimp.loadFont(Jimp.FONT_SANS_16_BLACK);
+    })
+    .then(function (font) {
+      loadedImage
+        .print(
+          font,
+          5,
+          1,
+          {
+            text: code,
+            alignmentX: Jimp.HORIZONTAL_ALIGN_LEFT,
+            alignmentY: Jimp.VERTICAL_ALIGN_BOTTOM,
+          },
+          loadedImage.bitmap.width,
+          loadedImage.bitmap.height
+        )
+        .write(path.join("public", "uploads", newFileName));
+    })
+    .catch(function (err) {
+      console.error(err);
     });
 
+  res.send({
+    imgURL: fullUrl + path.join("uploads", newFileName),
+  });
 });
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-    next(createError(404));
+  next(createError(404));
 });
 
 // error handler
 app.use(function (err, req, res, next) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get("env") === "development" ? err : {};
 
-    // render the error page
-    res.status(err.status || 500);
-    res.render("error");
+  // render the error page
+  res.status(err.status || 500);
+  res.render("error");
 });
 
 app.listen(port, () => console.log(`App listening on port : ${port}`));
