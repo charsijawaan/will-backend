@@ -386,14 +386,14 @@ async function uploadGeneric(obj) {
 
     let uploadPath = path.join(
         __dirname,
-        "../",
+        // "../",
         "public",
         "uploads",
         fileObject.name
     );
 
     let newName = renameFileWithUniqueName(fileObject.name);
-    let newPath = path.join(__dirname, "../", "public", "uploads", newName);
+    let newPath = path.join(__dirname, "public", "uploads", newName);
     let DBPath = path.join("uploads", newName);
 
     console.log("Before Moving");
