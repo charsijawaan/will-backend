@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const express = require("express");
 var cloudinary = require("cloudinary").v2;
-const multer = require("multer");
+
 var fs = require("fs");
 var path = require("path");
 const moment = require("moment");
@@ -16,27 +16,6 @@ cloudinary.config({
     api_key: "828443825275634",
     api_secret: "oYWmlitChe7pZ7K9PatCNZaXfMk",
 });
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, "./uploads/");
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + file.originalname);
-    },
-});
-
-const fileFilter = (req, file, cb) => {
-    if (
-        file.mimetype === "image/jpeg" ||
-        file.mimetype === "image/JPG" ||
-        file.mimetype === "image/png"
-    ) {
-        cb(null, true);
-    } else {
-        cb(null, false);
-    }
-};
 
 route.post("/createwill", async (req, res) => {
     let {
@@ -103,14 +82,19 @@ route.post("/createwill", async (req, res) => {
     let selfie3 = ["", ""];
 
     if (req.files) {
-        if (req.files.selfie1 !== undefined) {
-            selfie1 = await uploadGeneric(req.files.selfie1);
-        }
-        if (req.files.selfie2 !== undefined) {
-            selfie2 = await uploadGeneric(req.files.selfie2);
-        }
-        if (req.files.selfie3 !== undefined) {
-            selfie3 = await uploadGeneric(req.files.selfie3);
+        try {
+            if (req.files.selfie1 !== undefined) {
+                console.log("selfie1 Mil gae");
+                selfie1 = await uploadGeneric(req.files.selfie1);
+            }
+            if (req.files.selfie2 !== undefined) {
+                selfie2 = await uploadGeneric(req.files.selfie2);
+            }
+            if (req.files.selfie3 !== undefined) {
+                selfie3 = await uploadGeneric(req.files.selfie3);
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
 
@@ -411,6 +395,8 @@ async function uploadGeneric(obj) {
     let newName = renameFileWithUniqueName(fileObject.name);
     let newPath = path.join(__dirname, "../", "public", "uploads", newName);
     let DBPath = path.join("uploads", newName);
+
+    console.log("Before Moving");
 
     try {
         await moveFile(uploadPath, newPath, fileObject);
