@@ -10,12 +10,31 @@ var route = express.Router();
 var Will = require("../models/willcreation");
 var Users = require("./../models/users");
 var WillDocument = require("./../models/willDocument");
+let streamifier = require("streamifier");
 
+// cloudinary.config({
+//     cloud_name: "dexn8tnt9",
+//     api_key: "828443825275634",
+//     api_secret: "oYWmlitChe7pZ7K9PatCNZaXfMk",
+// });
 cloudinary.config({
-    cloud_name: "dexn8tnt9",
-    api_key: "828443825275634",
-    api_secret: "oYWmlitChe7pZ7K9PatCNZaXfMk",
+    cloud_name: "dtrghklfr",
+    api_key: "364324338527693",
+    api_secret: "LPimuqz4eLCvXmHyq67dJNTj5us",
 });
+
+async function uploadGeneric(obj) {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload(
+            obj.tempFilePath,
+            { unique_filename: true, resource_type: "auto" },
+            function (error, result) {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+    });
+}
 
 route.post("/createwill", async (req, res) => {
     let {
@@ -77,14 +96,13 @@ route.post("/createwill", async (req, res) => {
         userID,
     } = req.body;
 
-    let selfie1 = ["", ""];
-    let selfie2 = ["", ""];
-    let selfie3 = ["", ""];
+    let selfie1;
+    let selfie2;
+    let selfie3;
 
     if (req.files) {
         try {
             if (req.files.selfie1 !== undefined) {
-                console.log("selfie1 Mil gae");
                 selfie1 = await uploadGeneric(req.files.selfie1);
             }
             if (req.files.selfie2 !== undefined) {
@@ -158,9 +176,9 @@ route.post("/createwill", async (req, res) => {
         step13LiterateName: step13LiterateName,
         step13LiterateAddress: step13LiterateAddress,
         step14Witness: JSON.parse(step14Witness),
-        selfie1: selfie1[1],
-        selfie2: selfie2[1],
-        selfie3: selfie3[1],
+        selfie1: selfie1 !== undefined ? selfie1.secure_url : null,
+        selfie2: selfie2 !== undefined ? selfie2.secure_url : null,
+        selfie3: selfie3 !== undefined ? selfie3.secure_url : null,
         userID: userID,
         dateCreated: moment().format("LL"),
     });
@@ -175,14 +193,13 @@ route.post("/createwill", async (req, res) => {
 
         for (var i = 0; i < step7AssetDetails.length; i++) {
             if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
-                let oldAndNewNames = await uploadGeneric(
+                let uploadedFile = await uploadGeneric(
                     req.files[step7AssetDetails[i].assetFileName]
                 );
                 const doc = new WillDocument({
                     willID: will._id,
-                    originalDocumentName: oldAndNewNames[0],
-                    newDocumentName: oldAndNewNames[1],
-                    type: oldAndNewNames[1].split(".").pop(),
+                    url: uploadedFile.secure_url,
+                    type: uploadedFile.resource_type,
                     location: step7AssetDetails[i].documentLocation,
                     name: step7AssetDetails[i].assetFileName,
                     from: "nonmuslim will creation",
@@ -258,19 +275,23 @@ route.post("/createwill/muslim", async (req, res) => {
         userID,
     } = req.body;
 
-    let selfie1 = ["", ""];
-    let selfie2 = ["", ""];
-    let selfie3 = ["", ""];
+    let selfie1;
+    let selfie2;
+    let selfie3;
 
     if (req.files) {
-        if (req.files.selfie1 !== undefined) {
-            selfie1 = await uploadGeneric(req.files.selfie1);
-        }
-        if (req.files.selfie2 !== undefined) {
-            selfie2 = await uploadGeneric(req.files.selfie2);
-        }
-        if (req.files.selfie3 !== undefined) {
-            selfie3 = await uploadGeneric(req.files.selfie3);
+        try {
+            if (req.files.selfie1 !== undefined) {
+                selfie1 = await uploadGeneric(req.files.selfie1);
+            }
+            if (req.files.selfie2 !== undefined) {
+                selfie2 = await uploadGeneric(req.files.selfie2);
+            }
+            if (req.files.selfie3 !== undefined) {
+                selfie3 = await uploadGeneric(req.files.selfie3);
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
 
@@ -331,9 +352,9 @@ route.post("/createwill/muslim", async (req, res) => {
         additionalName: additionalName,
         additionalAddress: additionalAddress,
         signingDetails: JSON.parse(signingDetails),
-        selfie1: selfie1[1],
-        selfie2: selfie2[1],
-        selfie3: selfie3[1],
+        selfie1: selfie1 !== undefined ? selfie1.secure_url : null,
+        selfie2: selfie2 !== undefined ? selfie2.secure_url : null,
+        selfie3: selfie3 !== undefined ? selfie3.secure_url : null,
         dateCreated: moment().format("LL"),
         userID: userID,
     });
@@ -344,14 +365,13 @@ route.post("/createwill/muslim", async (req, res) => {
 
     for (var i = 0; i < step7AssetDetails.length; i++) {
         if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
-            let oldAndNewNames = await uploadGeneric(
+            let uploadedFile = await uploadGeneric(
                 req.files[step7AssetDetails[i].assetFileName]
             );
             const doc = new WillDocument({
                 willID: wm._id,
-                originalDocumentName: oldAndNewNames[0],
-                newDocumentName: oldAndNewNames[1],
-                type: oldAndNewNames[1].split(".").pop(),
+                url: uploadedFile.secure_url,
+                type: uploadedFile.resource_type,
                 location: step7AssetDetails[i].documentLocation,
                 name: step7AssetDetails[i].assetFileName,
                 from: "muslim will creation",
@@ -366,103 +386,5 @@ route.post("/createwill/muslim", async (req, res) => {
         msg: "success",
     });
 });
-
-function renameFileWithUniqueName(previousName) {
-    let dots = previousName.split(".");
-    let dt = new Date();
-    let newFileName = "";
-    for (let i = 0; i < dots.length - 1; i++) {
-        newFileName += dots[i];
-    }
-    newFileName += "12121212";
-    newFileName += dt.getTime();
-    newFileName += "." + dots[dots.length - 1];
-    return newFileName;
-}
-
-async function uploadGeneric(obj) {
-    let fileObject = obj;
-    let originalName = fileObject.name;
-
-    let uploadPath = path.join(
-        __dirname,
-        "../",
-        "public",
-        "uploads",
-        fileObject.name
-    );
-
-    let newName = renameFileWithUniqueName(fileObject.name);
-    let newPath = path.join(__dirname, "../", "public", "uploads", newName);
-    let DBPath = path.join("uploads", newName);
-
-    console.log("Before Moving");
-    console.log(uploadPath);
-    console.log(newPath);
-    try {
-        await moveFile(uploadPath, newPath, fileObject);
-        return [originalName, newName];
-    } catch (e) {
-        console.log(e);
-    }
-}
-
-function moveFile(uploadPath, newPath, fileObject) {
-    return new Promise((resolve, reject) => {
-        fileObject.mv(uploadPath, function (err) {
-            if (err) reject(err);
-            else {
-                console.log("File uploaded");
-                console.log("Will change name now");
-                fs.renameSync(uploadPath, newPath);
-                resolve();
-            }
-        });
-    });
-}
-
-async function uploadFiles(req) {
-    let filePaths = [];
-
-    if (req.files.selfies.length === undefined) {
-        let fileObject = req.files.refereeDocuments;
-        let uploadPath = path.join(
-            __dirname,
-            "../",
-            "public",
-            "uploads",
-            fileObject.name
-        );
-
-        let newName = renameFileWithUniqueName(fileObject.name);
-        let newPath = path.join(__dirname, "../", "public", "uploads", newName);
-
-        let DBPath = path.join("public", "uploads", newName);
-        filePaths.push(DBPath);
-
-        await moveFile(uploadPath, newPath, fileObject);
-        return filePaths;
-    }
-
-    for (let i = 0; i < req.files.selfies.length; i++) {
-        let fileObject = req.files.selfies[i];
-        let uploadPath = path.join(
-            __dirname,
-            "../",
-            "public",
-            "uploads",
-            fileObject.name
-        );
-
-        let newName = renameFileWithUniqueName(fileObject.name);
-        let newPath = path.join(__dirname, "../", "public", "uploads", newName);
-
-        let DBPath = path.join("public", "uploads", newName);
-        filePaths.push(DBPath);
-
-        await moveFile(uploadPath, newPath, fileObject);
-    }
-    return filePaths;
-}
 
 module.exports = route;

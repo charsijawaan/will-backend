@@ -37,7 +37,7 @@ app.set("view engine", "jade");
 app.use(logger("dev"));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-app.use(fileUpload({}));
+app.use(fileUpload({ useTempFiles: true }));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);

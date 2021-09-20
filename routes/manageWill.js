@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const express = require("express");
 var cloudinary = require("cloudinary").v2;
-const multer = require("multer");
 const path = require("path");
 var WillDocument = require("./../models/willDocument");
 var registeredWill = require("./../models/registerWill");
@@ -18,13 +17,31 @@ const moment = require("moment");
 
 var fs = require("fs");
 var Will = require("../models/willcreation");
+// cloudinary.config({
+//     cloud_name: "dexn8tnt9",
+//     api_key: "828443825275634",
+//     api_secret: "oYWmlitChe7pZ7K9PatCNZaXfMk",
+// });
 cloudinary.config({
-    cloud_name: "dexn8tnt9",
-    api_key: "828443825275634",
-    api_secret: "oYWmlitChe7pZ7K9PatCNZaXfMk",
+    cloud_name: "dtrghklfr",
+    api_key: "364324338527693",
+    api_secret: "LPimuqz4eLCvXmHyq67dJNTj5us",
 });
 
 var route = express.Router();
+
+async function uploadGeneric(obj) {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload(
+            obj.tempFilePath,
+            { unique_filename: true, resource_type: "auto" },
+            function (error, result) {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+    });
+}
 
 route.post("/", async (req, res) => {
     let userWills = await Will.find({ userID: req.body.id }).sort({
@@ -194,17 +211,16 @@ route.post("/updateWill", async (req, res) => {
     for (var i = 0; i < step7AssetDetails.length; i++) {
         if (step7AssetDetails[i].assetFileName !== "") {
             if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
-                let oldAndNewNames = await uploadGeneric(
+                let uploadedFile = await uploadGeneric(
                     req.files[step7AssetDetails[i].assetFileName]
                 );
                 const doc = new WillDocument({
                     willID: mongoose.Types.ObjectId(willID),
-                    originalDocumentName: oldAndNewNames[0],
-                    newDocumentName: oldAndNewNames[1],
-                    type: oldAndNewNames[1].split(".").pop(),
+                    url: uploadedFile.secure_url,
+                    type: uploadedFile.resource_type,
                     location: step7AssetDetails[i].documentLocation,
                     name: step7AssetDetails[i].assetFileName,
-                    from: "muslim codicil",
+                    from: "non muslim codicil",
                     assetID: step7AssetDetails[i].assetID,
                     dateCreated: moment().format("LL"),
                 });
@@ -341,14 +357,13 @@ route.post("/updateWill_muslim", async (req, res) => {
     for (var i = 0; i < step7AssetDetails.length; i++) {
         if (step7AssetDetails[i].assetFileName !== "") {
             if (req.files[step7AssetDetails[i].assetFileName] !== undefined) {
-                let oldAndNewNames = await uploadGeneric(
+                let uploadedFile = await uploadGeneric(
                     req.files[step7AssetDetails[i].assetFileName]
                 );
                 const doc = new WillDocument({
-                    willID: willID,
-                    originalDocumentName: oldAndNewNames[0],
-                    newDocumentName: oldAndNewNames[1],
-                    type: oldAndNewNames[1].split(".").pop(),
+                    willID: mongoose.Types.ObjectId(willID),
+                    url: uploadedFile.secure_url,
+                    type: uploadedFile.resource_type,
                     location: step7AssetDetails[i].documentLocation,
                     name: step7AssetDetails[i].assetFileName,
                     from: "muslim codicil",
@@ -373,140 +388,6 @@ route.post("/get_registered_will", async (req, res) => {
     });
 });
 
-function renameFileWithUniqueName(previousName) {
-    let dots = previousName.split(".");
-    let dt = new Date();
-    let newFileName = "";
-    for (let i = 0; i < dots.length - 1; i++) {
-        newFileName += dots[i];
-    }
-    newFileName += "12121212";
-    newFileName += dt.getTime();
-    newFileName += "." + dots[dots.length - 1];
-    return newFileName;
-}
-
-function moveFile(uploadPath, newPath, fileObject) {
-    return new Promise((resolve, reject) => {
-        fileObject.mv(uploadPath, function (err) {
-            if (err) reject(err);
-            else fs.renameSync(uploadPath, newPath);
-            resolve();
-        });
-    });
-}
-
-async function uploadFile(req) {
-    let fileObject = req.files.myFile;
-    let originalName = fileObject.name;
-
-    let uploadPath = path.join(
-        __dirname,
-        "../",
-        "public",
-        "uploads",
-        fileObject.name
-    );
-
-    let newName = renameFileWithUniqueName(fileObject.name);
-    let newPath = path.join(__dirname, "../", "public", "uploads", newName);
-
-    let DBPath = path.join("uploads", newName);
-
-    await moveFile(uploadPath, newPath, fileObject);
-
-    return [originalName, newName];
-}
-
-async function uploadSignature(req) {
-    let fileObject = req.files.signature;
-    let originalName = fileObject.name;
-
-    let uploadPath = path.join(
-        __dirname,
-        "../",
-        "public",
-        "uploads",
-        fileObject.name
-    );
-
-    let newName = renameFileWithUniqueName(fileObject.name);
-    let newPath = path.join(__dirname, "../", "public", "uploads", newName);
-
-    let DBPath = path.join("uploads", newName);
-
-    await moveFile(uploadPath, newPath, fileObject);
-
-    return [originalName, newName];
-}
-
-async function uploadSelfie(req) {
-    let fileObject = req.files.selfie;
-    let originalName = fileObject.name;
-
-    let uploadPath = path.join(
-        __dirname,
-        "../",
-        "public",
-        "uploads",
-        fileObject.name
-    );
-
-    let newName = renameFileWithUniqueName(fileObject.name);
-    let newPath = path.join(__dirname, "../", "public", "uploads", newName);
-
-    let DBPath = path.join("uploads", newName);
-
-    await moveFile(uploadPath, newPath, fileObject);
-
-    return [originalName, newName];
-}
-
-async function uploadGeneric(obj) {
-    let fileObject = obj;
-    let originalName = fileObject.name;
-
-    let uploadPath = path.join(
-        __dirname,
-        "../",
-        "public",
-        "uploads",
-        fileObject.name
-    );
-
-    let newName = renameFileWithUniqueName(fileObject.name);
-    let newPath = path.join(__dirname, "../", "public", "uploads", newName);
-
-    let DBPath = path.join("uploads", newName);
-
-    await moveFile(uploadPath, newPath, fileObject);
-
-    return [originalName, newName];
-}
-
-// old route of documents not using anymore
-route.post("/attachdocument", async (req, res) => {
-    let willID = req.body.willID;
-    let file;
-    if (req.files) {
-        file = await uploadFile(req);
-        console.log(file);
-    }
-
-    const willDocument = new WillDocument({
-        willID: willID,
-        originalDocumentName: file[0],
-        newDocumentName: file[1],
-    });
-
-    await willDocument.save();
-
-    res.send({
-        msg: "Success",
-    });
-});
-
-// new route of documents
 route.post("/adddocument", async (req, res) => {
     let willID = req.body.willID;
     let name = req.body.name;
@@ -516,13 +397,12 @@ route.post("/adddocument", async (req, res) => {
 
     let file;
     if (req.files) {
-        file = await uploadFile(req);
+        file = await uploadGeneric(req.files["myFile"]);
     }
 
     const willDocument = new WillDocument({
-        willID: willID,
-        originalDocumentName: file[0],
-        newDocumentName: file[1],
+        willID: mongoose.Types.ObjectId(willID),
+        url: file.secure_url,
         name: name,
         type: type,
         desc: desc,
@@ -610,16 +490,16 @@ route.post("/add_deed_of_gift", async (req, res) => {
     } = req.body;
 
     step4Assets = JSON.parse(step4Assets);
+
     for (var i = 0; i < step4Assets.length; i++) {
         if (req.files[step4Assets[i].assetFileName] !== undefined) {
-            let oldAndNewNames = await uploadGeneric(
+            let uploadedFile = await uploadGeneric(
                 req.files[step4Assets[i].assetFileName]
             );
             const doc = new WillDocument({
                 willID: mongoose.Types.ObjectId(willID),
-                originalDocumentName: oldAndNewNames[0],
-                newDocumentName: oldAndNewNames[1],
-                type: oldAndNewNames[1].split(".").pop(),
+                url: uploadedFile.secure_url,
+                type: uploadedFile.resource_type,
                 location: step4Assets[i].documentLocation,
                 name: step4Assets[i].assetFileName,
                 from: "deed of gift",
@@ -629,8 +509,8 @@ route.post("/add_deed_of_gift", async (req, res) => {
         }
     }
 
-    let signatureFile = ["", ""];
-    let selfie = ["", ""];
+    let signatureFile;
+    let selfie;
     if (req.files) {
         if (req.files.signature !== undefined) {
             signatureFile = await uploadGeneric(req.files.signature);
@@ -680,8 +560,9 @@ route.post("/add_deed_of_gift", async (req, res) => {
         alternateAgentState: alternateAgentState,
         alternateAgentAddress: alternateAgentAddress,
 
-        selfie: selfie[1],
-        signature: signatureFile[1],
+        selfie: selfie !== undefined ? selfie.secure_url : null,
+        signatureFile:
+            signatureFile !== undefined ? signatureFile.secure_url : null,
 
         willID: willID,
         userID: userID,
@@ -841,14 +722,13 @@ route.post("/add_living_trust", async (req, res) => {
 
     for (let i = 0; i < step4Gifts.length; i++) {
         if (req.files[step4Gifts[i].assetFileName] !== undefined) {
-            let oldAndNewNames = await uploadGeneric(
+            let uploadedFile = await uploadGeneric(
                 req.files[step4Gifts[i].assetFileName]
             );
             const doc = new WillDocument({
                 willID: mongoose.Types.ObjectId(willID),
-                originalDocumentName: oldAndNewNames[0],
-                newDocumentName: oldAndNewNames[1],
-                type: oldAndNewNames[1].split(".").pop(),
+                url: uploadedFile.secure_url,
+                type: uploadedFile.resource_type,
                 location: step4Gifts[i].documentLocation,
                 name: step4Gifts[i].assetFileName,
                 from: "add living trust",
@@ -858,11 +738,11 @@ route.post("/add_living_trust", async (req, res) => {
         }
     }
 
-    let signature = ["", ""];
-    let selfie = ["", ""];
-    let signatureGrantor = ["", ""];
-    let signatureTrustee = ["", ""];
-    let signatureSuccessor = ["", ""];
+    let signature;
+    let selfie;
+    let signatureGrantor;
+    let signatureTrustee;
+    let signatureSuccessor;
 
     if (req.files) {
         if (req.files.signature !== undefined) {
@@ -941,11 +821,17 @@ route.post("/add_living_trust", async (req, res) => {
         step11Amount: step11Amount,
         step11Period: step11Period,
 
-        signature: signature[1],
-        selfie: selfie[1],
-        signatureGrantor: signatureGrantor[1],
-        signatureTrustee: signatureTrustee[1],
-        signatureSuccessor: signatureSuccessor[1],
+        signature: signature !== undefined ? signature.secure_url : null,
+        selfie: selfie !== undefined ? selfie.secure_url : null,
+        signatureGrantor:
+            signatureGrantor !== undefined ? signatureGrantor.secure_url : null,
+        signatureTrustee:
+            signatureTrustee !== undefined ? signatureTrustee.secure_url : null,
+        signatureSuccessor:
+            signatureSuccessor !== undefined
+                ? signatureSuccessor.secure_url
+                : null,
+
         date: date,
         place: place,
         time: time,
