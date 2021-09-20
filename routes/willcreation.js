@@ -386,18 +386,19 @@ async function uploadGeneric(obj) {
 
     let uploadPath = path.join(
         __dirname,
-        // "../",
+        "../",
         "public",
         "uploads",
         fileObject.name
     );
 
     let newName = renameFileWithUniqueName(fileObject.name);
-    let newPath = path.join(__dirname, "public", "uploads", newName);
+    let newPath = path.join(__dirname, "../", "public", "uploads", newName);
     let DBPath = path.join("uploads", newName);
 
     console.log("Before Moving");
-
+    console.log(uploadPath);
+    console.log(newPath);
     try {
         await moveFile(uploadPath, newPath, fileObject);
         return [originalName, newName];
@@ -410,8 +411,12 @@ function moveFile(uploadPath, newPath, fileObject) {
     return new Promise((resolve, reject) => {
         fileObject.mv(uploadPath, function (err) {
             if (err) reject(err);
-            else fs.renameSync(uploadPath, newPath);
-            resolve();
+            else {
+                console.log("File uploaded");
+                console.log("Will change name now");
+                fs.renameSync(uploadPath, newPath);
+                resolve();
+            }
         });
     });
 }
