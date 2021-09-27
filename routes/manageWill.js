@@ -453,6 +453,7 @@ route.post("/getcodicil", async (req, res) => {
 route.post("/add_deed_of_gift", async (req, res) => {
     let {
         countryOfGift,
+        nameOfGift,
         stateOfGift,
         revokeThisGift,
         dateOfTransfer,
@@ -522,6 +523,7 @@ route.post("/add_deed_of_gift", async (req, res) => {
 
     const d = new deedOfGift({
         countryOfGift: countryOfGift,
+        nameOfGift: nameOfGift,
         stateOfGift: stateOfGift,
         revokeThisGift: revokeThisGift,
         dateOfTransfer: dateOfTransfer,

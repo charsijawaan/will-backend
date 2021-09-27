@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const deedOfGift = mongoose.Schema({
     countryOfGift: {type:String},
+    nameOfGift: {type:String},
     stateOfGift: {type:String},
     revokeThisGift: {type:String},
     dateOfTransfer: {type:String},
